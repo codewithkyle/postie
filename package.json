@@ -1,0 +1,22 @@
+{
+  "name": "@codewithkyle/postie",
+  "version": "1.0.0",
+  "description": "Perform CRUD operations using HTML Attributes.",
+  "main": "postie.min.mjs",
+	"types": "postie.d.ts",
+	"files": [
+		"postie.min.js",
+		"postie.min.mjs",
+		"postie.d.ts"
+	],
+	"scripts": {
+		"build": "esbuild ./src/postie.ts --outfile=postie.min.mjs --format=esm --minify --bundle && esbuild ./src/postie.ts --outfile=postie.min.js --format=iife --bundle --minify-whitespace --global-name=Postie",
+		"test": "npm run build && cp ./postie.min.js ./test/postie.min.js && cp ./postie.min.mjs ./test/postie.min.mjs && serve ./test"
+	},
+  "author": "Kyle Andrews <codingwithkyle@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.11.5",
+    "serve": "^11.3.2"
+  }
+}
