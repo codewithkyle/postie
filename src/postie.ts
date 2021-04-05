@@ -1,4 +1,6 @@
-class Postie{}
+class Postie{
+    
+}
 
 const postie = new Postie();
 

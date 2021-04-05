@@ -24,7 +24,8 @@
 	
 	<button data-test="hello world" class="js-bttn bg-primary-700 font-white px-1 radius-0.25 font-sm font-medium m-0.5 cursor-pointer shadow-md text-uppercase" flex="items-center justify-center" style="height: 36px;">Click Me!</button>
 
-	<script type="module">
+    <script src="./postie.min.js"></script>
+	<script>
 		const bttn = document.body.querySelector(".js-bttn");
 		bttn.addEventListener("click", () => {
             for (const key in bttn.dataset){
