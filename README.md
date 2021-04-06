@@ -18,8 +18,6 @@ Or via CDN:
 
 ## Usage
 
-## HTML Markup
-
 ```html
 
 ```

@@ -1,5 +1,71 @@
 class Postie{
+    private io: IntersectionObserver;
 
+    constructor(){
+        this.io = new IntersectionObserver(this.observe.bind(this));
+        this.main();
+    }
+
+    private observe:IntersectionObserverCallback = (elements:Array<IntersectionObserverEntry>) => {
+        elements.forEach(el => {
+            if (el.isIntersecting){
+                // @ts-ignore
+                this.io.unobserve(el);
+            }
+        });
+    }
+
+    private handleClick:EventListener = (e:Event) => {
+        const target = e.target as HTMLElement;
+        if (target.getAttribute("postie") !== null && target.getAttribute("trigger")?.toLowerCase() === "click" || target.getAttribute("trigger") === null){
+            this.processElement(target);
+        }
+    }
+
+    private handleKeypress:EventListener = (e:Event) => {
+        if (e instanceof KeyboardEvent){
+            const target = e.target as HTMLElement;
+            const trigger = target.getAttribute("trigger")?.toLowerCase() ?? null;
+            if (target.getAttribute("postie") !== null){
+                const key = e.key.toLowerCase();
+                if (trigger === "keypress" || trigger === "keyup" || trigger === "keydown" || trigger === "key"){
+                    if (target.getAttribute("key")?.toLowerCase() === key){
+                        this.processElement(target);
+                    }
+                } else if (trigger === "click" || trigger === null && key === "enter" || key === "") {
+                    this.processElement(target);
+                }
+            }
+        }
+    }
+
+    private processElement(el:HTMLElement):void{
+        
+    }
+
+    private observeElements():void{
+        document.body.querySelectorAll(`[postie][trigger="observe"]:not([postie-uid])`).forEach(el => {
+            el.setAttribute("postie-uid", this.uuid());
+            this.io.observe(el);
+        });
+    }
+
+    private main(){
+        document.addEventListener("click", this.handleClick, { passive: true, capture: true });
+        document.addEventListener("keypress", this.handleKeypress, { passive: true, capture: true });
+        document.addEventListener("postie:reload", () => {
+            this.observeElements();
+        });
+        this.observeElements();
+    }
+
+    private uuid() {
+        // @ts-ignore
+        return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+        );
+    }
+      
 }
 
 const postie = new Postie();
