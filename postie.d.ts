@@ -1,16 +1,25 @@
-export type Request = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export type AcceptHeader = "application/json" | "text/html";
 
 export type Prompt = "confirm" | "input" | null;
 
+export type SwapOpitons = "inner" | "outer" | "innerHTML" | "outerHTML";
+
 export type PostieSettings = {
-    request: Request;
+    method: RequestMethod;
+    accept: AcceptHeader;
     data: DOMStringMap;
     endpoint: string;
     prompt: Prompt;
     promptLabel: string | null;
-    promptValue: string | null;
+    promptValue: string;
+    promptName: string;
     success: string | null;
     error: string | null;
     preventDisable: boolean;
     once: boolean;
+    target: string;
+    swap: SwapOpitons;
+    el: HTMLElement;
 };

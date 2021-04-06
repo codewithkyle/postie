@@ -1,4 +1,4 @@
-import type { PostieSettings, Request, Prompt } from "../postie";
+import type { PostieSettings, RequestMethod, Prompt, AcceptHeader, Swap } from "../postie";
 
 class Postie{
     private io: IntersectionObserver;
@@ -29,8 +29,10 @@ class Postie{
 
     private handleClick:EventListener = (e:Event) => {
         const target = e.target as HTMLElement;
-        if (target.getAttribute("postie") !== null && target.getAttribute("trigger")?.toLowerCase() === "click" || target.getAttribute("trigger") === null){
-            this.beforeProcessElement(target);
+        if (target.getAttribute("postie") !== null){
+            if (target.getAttribute("trigger")?.toLowerCase() === "click" || target.getAttribute("trigger") === null){
+                this.beforeProcessElement(target);
+            }
         }
     }
 
@@ -53,16 +55,21 @@ class Postie{
 
     private processElement(el:HTMLElement):void{
         const settings:PostieSettings = {
-            request: <Request>el.getAttribute("request")?.toUpperCase() ?? "POST",
+            method: <RequestMethod>el.getAttribute("request")?.toUpperCase() ?? "POST",
+            accept: <AcceptHeader>el.getAttribute("accept")?.toLowerCase() ?? "application/json",
             data: el.dataset,
             endpoint: el.getAttribute("endpoint"),
             prompt: <Prompt>el.getAttribute("prompt")?.toLowerCase() ?? null,
             promptLabel: el.getAttribute("prompt-label"),
-            promptValue: el.getAttribute("prompt-value"),
+            promptValue: el.getAttribute("prompt-value") ?? "",
+            promptName: el.getAttribute("prompt-name") ?? "prompt",
             success: el.getAttribute("success") || el.getAttribute("onsuccess") || null,
             error: el.getAttribute("error") || el.getAttribute("onerror") || null,
             preventDisable: (el.getAttribute("no-disable") !== null) || (el.getAttribute("prevent-disable") !== null) || false,
-            once: (el.getAttribute("once") !== null) || false,
+            once: (el.getAttribute("once") !== null),
+            target: el.getAttribute("target"),
+            swap: <Swap>el.getAttribute("swap") || "innerHTML",
+            el: el,
         };
         if (settings.endpoint === null || settings.prompt !== null && settings.promptLabel === null){
             console.error("Invalid Postie settings.", settings);
@@ -71,6 +78,98 @@ class Postie{
         if (el.getAttribute("postie-uid") === null){
             el.setAttribute("postie-uid", this.uuid());
         }
+        switch (settings.prompt){
+            case "confirm":
+                if (!confirm(settings.promptLabel)){
+                    return;
+                }
+                break;
+            case "input":
+                const value = prompt(settings.promptLabel, settings.promptValue);
+                if (value === null){
+                    return;
+                }
+                settings.data[settings.promptName] = value;
+                break;
+            default:
+                break;
+        }
+        this.processRequest(settings);
+    }
+
+    private async processRequest(settings:PostieSettings):Promise<void>{
+        const request = await fetch(settings.endpoint, {
+            method: settings.method,
+            credentials: "include",
+            headers: new Headers({
+                Accept: settings.accept,
+                "Content-Type": "application/json",
+            }),
+            body: JSON.stringify(settings.data),
+        });
+        let response = null;
+        switch (settings.accept){
+            case "application/json":
+                response = await request.json();
+                break;
+            case "text/html":
+                response = await request.text();
+                break;
+            default:
+                break;
+        }
+        let script = document.head.querySelector("script#postie");
+        if (script){
+            script.remove();
+        }
+        script = document.createElement("script");
+        script.id = "postie";
+        if (request.ok){
+            if (settings.success !== null){
+                script.innerHTML = `const response = JSON.parse(${JSON.stringify(response)});`;
+                script.innerHTML += settings.success;
+            }
+            if (settings.accept === "text/html"){
+                let target = settings.el;
+                if (settings.target !== null){
+                    target = document.body.querySelector(settings.target);
+                    if (!target){
+                        console.error(`Failed to find element matching selector: ${settings.target}`);
+                        return;
+                    }
+                }
+                switch(settings.swap){
+                    case "inner":
+                        target.innerHTML = response;
+                        break;
+                    case "innerHTML":
+                        target.innerHTML = response;
+                        break;
+                    case "outer":
+                        target.outerHTML = response;
+                        break;
+                    case "outerHTML":
+                        target.outerHTML = response;
+                        break;
+                    default:
+                        target.innerHTML = response;
+                        break;
+                }
+            }
+        } else {
+            console.error(`${request.status}: ${request.statusText}`);
+            if (settings.error !== null){
+                script.innerHTML = `const response = JSON.parse(${JSON.stringify(response)});`;
+                script.innerHTML += settings.error;
+            }
+        }
+        if (script.innerHTML.length){
+            document.head.appendChild(script);
+        }
+        const customEvent = new CustomEvent(`postie:${request.ok ? "success" : "error"}`, {
+            detail: response,
+        });
+        document.dispatchEvent(customEvent);
     }
 
     private observeElements():void{
