@@ -1,3 +1,5 @@
+import type { PostieSettings, Request, Prompt } from "../postie";
+
 class Postie{
     private io: IntersectionObserver;
 
@@ -7,18 +9,28 @@ class Postie{
     }
 
     private observe:IntersectionObserverCallback = (elements:Array<IntersectionObserverEntry>) => {
-        elements.forEach(el => {
-            if (el.isIntersecting){
-                // @ts-ignore
-                this.io.unobserve(el);
+        elements.forEach(e => {
+            if (e.isIntersecting){
+                this.processElement(e.target as HTMLElement);
+                this.io.unobserve(e.target);
             }
         });
+    }
+
+    private beforeProcessElement(target:HTMLElement):void{
+        let canProcess = true;
+        if (target.getAttribute("once") !== null && target.getAttribute("postie-uid") !== null){
+            canProcess = false;
+        }
+        if (canProcess){
+            this.processElement(target);
+        }
     }
 
     private handleClick:EventListener = (e:Event) => {
         const target = e.target as HTMLElement;
         if (target.getAttribute("postie") !== null && target.getAttribute("trigger")?.toLowerCase() === "click" || target.getAttribute("trigger") === null){
-            this.processElement(target);
+            this.beforeProcessElement(target);
         }
     }
 
@@ -30,17 +42,35 @@ class Postie{
                 const key = e.key.toLowerCase();
                 if (trigger === "keypress" || trigger === "keyup" || trigger === "keydown" || trigger === "key"){
                     if (target.getAttribute("key")?.toLowerCase() === key){
-                        this.processElement(target);
+                        this.beforeProcessElement(target);
                     }
                 } else if (trigger === "click" || trigger === null && key === "enter" || key === "") {
-                    this.processElement(target);
+                    this.beforeProcessElement(target);
                 }
             }
         }
     }
 
     private processElement(el:HTMLElement):void{
-        
+        const settings:PostieSettings = {
+            request: <Request>el.getAttribute("request")?.toUpperCase() ?? "POST",
+            data: el.dataset,
+            endpoint: el.getAttribute("endpoint"),
+            prompt: <Prompt>el.getAttribute("prompt")?.toLowerCase() ?? null,
+            promptLabel: el.getAttribute("prompt-label"),
+            promptValue: el.getAttribute("prompt-value"),
+            success: el.getAttribute("success") || el.getAttribute("onsuccess") || null,
+            error: el.getAttribute("error") || el.getAttribute("onerror") || null,
+            preventDisable: (el.getAttribute("no-disable") !== null) || (el.getAttribute("prevent-disable") !== null) || false,
+            once: (el.getAttribute("once") !== null) || false,
+        };
+        if (settings.endpoint === null || settings.prompt !== null && settings.promptLabel === null){
+            console.error("Invalid Postie settings.", settings);
+            return;
+        }
+        if (el.getAttribute("postie-uid") === null){
+            el.setAttribute("postie-uid", this.uuid());
+        }
     }
 
     private observeElements():void{
