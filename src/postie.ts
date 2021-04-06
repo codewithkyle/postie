@@ -162,6 +162,7 @@ class Postie{
                         default:
                             throw `Invalid swap type: ${settings.swap}`;
                     }
+                    this.observeElements();
                 }
                 settings.el.setAttribute("postie", "success");
             } else {
