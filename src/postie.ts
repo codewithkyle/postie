@@ -29,7 +29,7 @@ class Postie{
 
     private handleClick:EventListener = (e:Event) => {
         const target = e.target as HTMLElement;
-        if (target.getAttribute("postie") !== null){
+        if (target.getAttribute("postie") !== null && target.getAttribute("disabled") === null){
             if (target.getAttribute("trigger")?.toLowerCase() === "click" || target.getAttribute("trigger") === null){
                 this.beforeProcessElement(target);
             }
@@ -40,7 +40,7 @@ class Postie{
         if (e instanceof KeyboardEvent){
             const target = e.target as HTMLElement;
             const trigger = target.getAttribute("trigger")?.toLowerCase() ?? null;
-            if (target.getAttribute("postie") !== null){
+            if (target.getAttribute("postie") !== null && target.getAttribute("disabled") === null){
                 const key = e.key.toLowerCase();
                 if (trigger === "keypress" || trigger === "keyup" || trigger === "keydown" || trigger === "key"){
                     if (target.getAttribute("key")?.toLowerCase() === key){
