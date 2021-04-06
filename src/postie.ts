@@ -70,6 +70,7 @@ class Postie{
             target: el.getAttribute("target"),
             swap: <Swap>el.getAttribute("swap") || "innerHTML",
             el: el,
+            reset: (el.getAttribute("reset") !== null) ? parseInt(el.getAttribute("reset")) : 10,
         };
         if (settings.endpoint === null || settings.prompt !== null && settings.promptLabel === null){
             console.error("Invalid Postie settings.", settings);
@@ -98,78 +99,99 @@ class Postie{
     }
 
     private async processRequest(settings:PostieSettings):Promise<void>{
-        const request = await fetch(settings.endpoint, {
-            method: settings.method,
-            credentials: "include",
-            headers: new Headers({
-                Accept: settings.accept,
-                "Content-Type": "application/json",
-            }),
-            body: JSON.stringify(settings.data),
-        });
-        let response = null;
-        switch (settings.accept){
-            case "application/json":
-                response = await request.json();
-                break;
-            case "text/html":
-                response = await request.text();
-                break;
-            default:
-                break;
-        }
-        let script = document.head.querySelector("script#postie");
-        if (script){
-            script.remove();
-        }
-        script = document.createElement("script");
-        script.id = "postie";
-        if (request.ok){
-            if (settings.success !== null){
-                script.innerHTML = `const response = JSON.parse(${JSON.stringify(response)});`;
-                script.innerHTML += settings.success;
+        let customEvent;
+        try{
+            settings.el.setAttribute("postie", "processing");
+            if (!settings.preventDisable){
+                settings.el.setAttribute("disabled", "true");
             }
-            if (settings.accept === "text/html"){
-                let target = settings.el;
-                if (settings.target !== null){
-                    target = document.body.querySelector(settings.target);
-                    if (!target){
-                        console.error(`Failed to find element matching selector: ${settings.target}`);
-                        return;
+            const request = await fetch(settings.endpoint, {
+                method: settings.method,
+                credentials: "include",
+                headers: new Headers({
+                    Accept: settings.accept,
+                    "Content-Type": "application/json",
+                }),
+                body: JSON.stringify(settings.data),
+            });
+            let response = null;
+            switch (settings.accept){
+                case "application/json":
+                    response = await request.json();
+                    break;
+                case "text/html":
+                    response = await request.text();
+                    break;
+                default:
+                    throw `Invalid accept type: ${settings.accept}`;
+            }
+            let script = document.head.querySelector("script#postie");
+            if (script){
+                script.remove();
+            }
+            script = document.createElement("script");
+            script.id = "postie";
+            if (request.ok){
+                if (settings.success !== null){
+                    if (settings.accept === "application/json"){
+                        script.innerHTML += `const response = JSON.parse(${JSON.stringify(response)});`;
+                    }
+                    script.innerHTML += settings.success;
+                }
+                if (settings.accept === "text/html"){
+                    let target = settings.el;
+                    if (settings.target !== null){
+                        target = document.body.querySelector(settings.target);
+                        if (!target){
+                            throw `Failed to find element matching selector: ${settings.target}`;
+                        }
+                    }
+                    switch(settings.swap){
+                        case "inner":
+                            target.innerHTML = response;
+                            break;
+                        case "innerHTML":
+                            target.innerHTML = response;
+                            break;
+                        case "outer":
+                            target.outerHTML = response;
+                            break;
+                        case "outerHTML":
+                            target.outerHTML = response;
+                            break;
+                        default:
+                            throw `Invalid swap type: ${settings.swap}`;
                     }
                 }
-                switch(settings.swap){
-                    case "inner":
-                        target.innerHTML = response;
-                        break;
-                    case "innerHTML":
-                        target.innerHTML = response;
-                        break;
-                    case "outer":
-                        target.outerHTML = response;
-                        break;
-                    case "outerHTML":
-                        target.outerHTML = response;
-                        break;
-                    default:
-                        target.innerHTML = response;
-                        break;
+                settings.el.setAttribute("postie", "success");
+            } else {
+                console.error(`${request.status}: ${request.statusText}`);
+                if (settings.error !== null){
+                    if (settings.accept === "application/json"){
+                        script.innerHTML += `const response = JSON.parse(${JSON.stringify(response)});`;
+                    }
+                    script.innerHTML += settings.error;
                 }
+                settings.el.setAttribute("postie", "error");
             }
-        } else {
-            console.error(`${request.status}: ${request.statusText}`);
-            if (settings.error !== null){
-                script.innerHTML = `const response = JSON.parse(${JSON.stringify(response)});`;
-                script.innerHTML += settings.error;
+            if (script.innerHTML.length){
+                document.head.appendChild(script);
             }
+            customEvent = new CustomEvent(`postie:${request.ok ? "success" : "error"}`, {
+                detail: settings.accept === "application/json" ? response : null,
+            });
+        } catch (e) {
+            console.error(e);
+            settings.el.setAttribute("postie", "error");
+            customEvent = new CustomEvent(`postie:error`, {
+                detail: null,
+            });
         }
-        if (script.innerHTML.length){
-            document.head.appendChild(script);
-        }
-        const customEvent = new CustomEvent(`postie:${request.ok ? "success" : "error"}`, {
-            detail: response,
-        });
         document.dispatchEvent(customEvent);
+        settings.el.removeAttribute("disabled");
+        setTimeout(() => {
+            settings.el.setAttribute("postie", "idling");
+        }, settings.reset * 1000);
     }
 
     private observeElements():void{

@@ -4,7 +4,7 @@ export type AcceptHeader = "application/json" | "text/html";
 
 export type Prompt = "confirm" | "input" | null;
 
-export type SwapOpitons = "inner" | "outer" | "innerHTML" | "outerHTML";
+export type Swap = "inner" | "outer" | "innerHTML" | "outerHTML";
 
 export type PostieSettings = {
     method: RequestMethod;
@@ -20,6 +20,7 @@ export type PostieSettings = {
     preventDisable: boolean;
     once: boolean;
     target: string;
-    swap: SwapOpitons;
+    swap: Swap;
     el: HTMLElement;
+    reset: number;
 };

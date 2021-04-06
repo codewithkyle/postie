@@ -18,11 +18,15 @@
 			outline: none;
 			background: transparent;
 		}
+        button:disabled{
+            background-color: var(--grey-300) !important;
+        }
 	</style>
 </head>
 <body class="m-0 bg-grey-200 w-screen h-screen" flex="items-center justify-center">
 	
-	<button data-test="hello world" class="js-bttn bg-primary-700 font-white px-1 radius-0.25 font-sm font-medium m-0.5 cursor-pointer shadow-md text-uppercase" flex="items-center justify-center" style="height: 36px;">Click Me!</button>
+    <div id="parent"></div>
+	<button onsuccess="alert('Hello world');" postie method="GET" target="#parent" swap="outerHTML" endpoint="/ajax.html" accept="text/html" class="js-bttn bg-primary-700 font-white px-1 radius-0.25 font-sm font-medium m-0.5 cursor-pointer shadow-md text-uppercase" flex="items-center justify-center" style="height: 36px;">Click Me!</button>
 
     <script src="./postie.min.js"></script>
 </body>
