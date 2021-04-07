@@ -18,6 +18,38 @@ Or via CDN:
 
 ## Usage
 
+### Interfaces
+
+```typescript
+type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+type AcceptHeader = "application/json" | "text/html";
+
+type Prompt = "confirm" | "input" | null;
+
+type Swap = "inner" | "outer" | "innerHTML" | "outerHTML";
+
+interface PostieSettings {
+    endpoint: string;
+    method?: RequestMethod; // POST
+    accept?: AcceptHeader; // application/json
+    data?: DOMStringMap; // {}
+    prompt?: Prompt; // null
+    promptLabel?: string;
+    promptValue?: string;
+    promptName?: string; // prompt
+    success?: string | null;
+    error?: string | null;
+    preventDisable?: boolean; // false
+    once?: boolean; // false
+    target?: string; // this.el
+    swap?: Swap; // innerHTML
+    reset?: number; // 10
+};
+```
+
+### Examples
+
 ```html
 
 ```
