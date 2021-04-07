@@ -89,7 +89,7 @@ interface PostieSettings {
 <button postie onsuccess="console.log(response);" onerror="console.log(response);" method="DELETE" endpoint="https://api.example.com/v1/user">Delete Account</button>
 ```
 
-### Trigger Event Options
+#### Trigger Event Options
 
 ```html
 <!-- Tell Postie to perform the action when the element is clicked (default) -->
