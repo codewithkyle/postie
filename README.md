@@ -66,4 +66,7 @@ interface PostieSettings {
 
 <!-- Fetch HTML and replace the elements outerHTML -->
 <button method="GET" accept="text/html" endpoint="/ajax/demo.html" swap="outerHTML">Hotswap Element</button>
+
+<!-- application/json responses (default) inject a "response" object into the error/success callback script -->
+<button endpoint="/this/could/fail" onsuccess="console.log(response);" onerror="console.log(response);">AJAX</button>
 ```
