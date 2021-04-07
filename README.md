@@ -51,5 +51,19 @@ interface PostieSettings {
 ### Examples
 
 ```html
+<!-- DELETE example showcasing success and error handling -->
+<button method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
 
+<!-- POST data { "userId": "1234", "source": "demo" } to the resend verification endpoint -->
+<button endpoint="https://api.example.com/v1/user/resend-verification" data-user-id="1234" data-source="demo">Resend Verification Email</button>
+
+<!-- Fetch HTML and inject it into the element -->
+<button method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+
+<!-- Fetch HTML and inject it into another element using a selector string -->
+<div id="target-element"></div>
+<button method="GET" accept="text/html" endpoint="/ajax/demo.html" target="#target-element">AJAX</button>
+
+<!-- Fetch HTML and replace the elements outerHTML -->
+<button method="GET" accept="text/html" endpoint="/ajax/demo.html" swap="outerHTML">Hotswap Element</button>
 ```
