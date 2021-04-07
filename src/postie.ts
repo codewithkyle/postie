@@ -53,49 +53,64 @@ class Postie{
         }
     }
 
-    private processElement(el:HTMLElement):void{
-        const settings:PostieSettings = {
-            method: <RequestMethod>el.getAttribute("request")?.toUpperCase() ?? "POST",
-            accept: <AcceptHeader>el.getAttribute("accept")?.toLowerCase() ?? "application/json",
-            data: el.dataset,
-            endpoint: el.getAttribute("endpoint"),
-            prompt: <Prompt>el.getAttribute("prompt")?.toLowerCase() ?? null,
-            promptLabel: el.getAttribute("prompt-label"),
-            promptValue: el.getAttribute("prompt-value") ?? "",
-            promptName: el.getAttribute("prompt-name") ?? "prompt",
-            success: el.getAttribute("success") || el.getAttribute("onsuccess") || null,
-            error: el.getAttribute("error") || el.getAttribute("onerror") || null,
-            preventDisable: (el.getAttribute("no-disable") !== null) || (el.getAttribute("prevent-disable") !== null) || false,
-            once: (el.getAttribute("once") !== null),
-            target: el.getAttribute("target"),
-            swap: <Swap>el.getAttribute("swap") || "innerHTML",
-            el: el,
-            reset: (el.getAttribute("reset") !== null) ? parseInt(el.getAttribute("reset")) : 10,
-        };
-        if (settings.endpoint === null || settings.prompt !== null && settings.promptLabel === null){
-            console.error("Invalid Postie settings.", settings);
-            return;
-        }
+    private applyUid(el:HTMLElement):void{
         if (el.getAttribute("postie-uid") === null){
             el.setAttribute("postie-uid", this.uuid());
         }
+    }
+
+    private handlePrompt(settings:PostieSettings){
         switch (settings.prompt){
             case "confirm":
                 if (!confirm(settings.promptLabel)){
-                    return;
+                    throw "User canceled.";
                 }
-                break;
+                return;
             case "input":
                 const value = prompt(settings.promptLabel, settings.promptValue);
                 if (value === null){
-                    return;
+                    throw "User canceled.";
                 }
                 settings.data[settings.promptName] = value;
-                break;
+                return;
             default:
-                break;
+                return;
         }
-        this.processRequest(settings);
+    }
+
+    private validateSettings(settings:PostieSettings):void{
+        if (settings.endpoint === null || settings.prompt !== null && settings.promptLabel === null){
+            throw "Invalid Postie settings.";
+        }
+    }
+
+    private processElement(el:HTMLElement):void{
+        try {
+            const settings:PostieSettings = {
+                method: <RequestMethod>el.getAttribute("request")?.toUpperCase() ?? "POST",
+                accept: <AcceptHeader>el.getAttribute("accept")?.toLowerCase() ?? "application/json",
+                data: el.dataset,
+                endpoint: el.getAttribute("endpoint"),
+                prompt: <Prompt>el.getAttribute("prompt")?.toLowerCase() ?? null,
+                promptLabel: el.getAttribute("prompt-label"),
+                promptValue: el.getAttribute("prompt-value") ?? "",
+                promptName: el.getAttribute("prompt-name") ?? "prompt",
+                success: el.getAttribute("success") || el.getAttribute("onsuccess") || null,
+                error: el.getAttribute("error") || el.getAttribute("onerror") || null,
+                preventDisable: (el.getAttribute("no-disable") !== null) || (el.getAttribute("prevent-disable") !== null) || false,
+                once: (el.getAttribute("once") !== null),
+                target: el.getAttribute("target"),
+                swap: <Swap>el.getAttribute("swap") || "innerHTML",
+                el: el,
+                reset: (el.getAttribute("reset") !== null) ? parseInt(el.getAttribute("reset")) : 10,
+            };
+            this.validateSettings(settings);
+            this.handlePrompt(settings);
+            this.applyUid(el);
+            this.processRequest(settings);
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     private async processRequest(settings:PostieSettings):Promise<void>{
@@ -197,7 +212,7 @@ class Postie{
 
     private observeElements():void{
         document.body.querySelectorAll(`[postie][trigger="observe"]:not([postie-uid])`).forEach(el => {
-            el.setAttribute("postie-uid", this.uuid());
+            this.applyUid(el as HTMLElement);
             this.io.observe(el);
         });
     }
