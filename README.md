@@ -69,4 +69,52 @@ interface PostieSettings {
 
 <!-- application/json responses (default) inject a "response" object into the error/success callback script -->
 <button endpoint="/this/could/fail" onsuccess="console.log(response);" onerror="console.log(response);">AJAX</button>
+
+<!-- Prevent Postie from applying the [disabled] attribute to the element -->
+<button prevent-disable method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+<button no-disable method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+
+<!-- Stop Postie from preventing the default event behavior -->
+<button allow-default method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+
+<!-- Tell Postie the action can only be performed once -->
+<button once method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+
+<!-- Change the reset timeout -- defaults to 10 (seconds) -->
+<button reset="5" endpoint="https://api.example.com/v1/user/resend-verification" data-user-id="1234" data-source="demo">Resend Verification Email</button>
+
+<!-- Prompt the user to confirm their action -->
+<button prompt="confirm" prompt-label="Are you sure you want to delete your account? This action cannot be undone." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+
+<!-- Prompt the user for an input before processing their action -->
+<button prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+
+<!-- Control the prompts body param key: { "password": "" } -->
+<button prompt-name="password" prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+
+<!-- Prefill the input prompts value -->
+<button prompt-value="prefill prompt value" prompt-name="password" prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+```
+
+### CSS
+
+```scss
+button{
+    &[postie="idling"]{
+        // Default postie element state
+    }
+    &[postie="processing"]{
+        // Show a loading spinner or something
+    }
+    &[postie="success"]{
+        // Success!
+    }
+    &[postie="error"]{
+        // Oh sh*t.
+    }
+    &[disabled],
+    &:disabled{
+        // Postie disabled this element
+    }
+}
 ```

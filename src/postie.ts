@@ -27,11 +27,17 @@ class Postie{
         }
     }
 
+    private preventDefault(target:HTMLElement, e:Event):void{
+        if (target.getAttribute("allow-default") === null){
+            e.preventDefault();
+        }
+    }
+
     private handleClick:EventListener = (e:Event) => {
         const target = e.target as HTMLElement;
         if (target.getAttribute("postie") !== null && target.getAttribute("disabled") === null){
             if (target.getAttribute("trigger")?.toLowerCase() === "click" || target.getAttribute("trigger") === null){
-                e.preventDefault();
+                this.preventDefault(target, e);
                 this.beforeProcessElement(target);
             }
         }
@@ -45,11 +51,11 @@ class Postie{
                 const key = e.key.toLowerCase();
                 if (trigger === "keypress" || trigger === "keyup" || trigger === "keydown" || trigger === "key"){
                     if (target.getAttribute("key")?.toLowerCase() === key){
-                        e.preventDefault();
+                        this.preventDefault(target, e);
                         this.beforeProcessElement(target);
                     }
                 } else if (trigger === "click" || trigger === null && key === "enter" || key === "") {
-                    e.preventDefault();
+                    this.preventDefault(target, e);
                     this.beforeProcessElement(target);
                 }
             }
@@ -207,7 +213,9 @@ class Postie{
     }
 
     private reset(settings:PostieSettings):void{
-        settings.el.removeAttribute("disabled");
+        if (!settings.once){
+            settings.el.removeAttribute("disabled");
+        }
         setTimeout(() => {
             settings.el.setAttribute("postie", "idling");
         }, settings.reset * 1000);
