@@ -257,7 +257,7 @@ class Postie{
     private main(){
         document.addEventListener("click", this.handleClick, { passive: true, capture: true });
         document.addEventListener("keypress", this.handleKeypress, { passive: true, capture: true });
-        document.addEventListener("postie:reload", () => {
+        document.addEventListener("postie:update", () => {
             this.observeElements();
         });
         this.observeElements();

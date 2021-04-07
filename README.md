@@ -58,7 +58,7 @@ interface PostieSettings {
 <button postie></button>
 
 <!-- These are the default HTML Attribute values -->
-<button postie="idling" method="POST" accept="application/json" swap="innerHTML" reset="10"></button>
+<button postie="idling" method="POST" accept="application/json" swap="innerHTML" reset="10" trigger="click"></button>
 
 <!-- These are the required HTML Attributes -->
 <button postie endpoint="/url/to/some/endpoint-or-page"></button>
@@ -66,13 +66,45 @@ interface PostieSettings {
 
 ### Examples
 
+#### Request Method & Body Controls
+
 ```html
-<!-- DELETE example showcasing success and error handling -->
-<button postie method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+<!-- DELETE example -->
+<button postie method="DELETE" endpoint="https://api.example.com/v1/user">Delete Account</button>
 
-<!-- POST data { "userId": "1234", "source": "demo" } to the resend verification endpoint -->
+<!-- POST with data example: { "userId": "1234", "source": "demo" } -->
 <button postie endpoint="https://api.example.com/v1/user/resend-verification" data-user-id="1234" data-source="demo">Resend Verification Email</button>
+```
 
+#### Handling Responses
+
+```html
+<!-- Success handling -->
+<button postie onsuccess="location.href = '/';" method="DELETE" endpoint="https://api.example.com/v1/user">Delete Account</button>
+
+<!-- Error handling -->
+<button postie onerror="alert('Failed to delete account.');" method="DELETE" endpoint="https://api.example.com/v1/user">Delete Account</button>
+
+<!-- application/json responses (default) injects a "response" object into the error/success callback script -->
+<button postie onsuccess="console.log(response);" onerror="console.log(response);" method="DELETE" endpoint="https://api.example.com/v1/user">Delete Account</button>
+```
+
+### Trigger Event Options
+
+```html
+<!-- Tell Postie to perform the action when the element is clicked (default) -->
+<button postie trigger="click" method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+
+<!-- Tell Postie to perform the action when the element enters the viewport (observe only fires once) -->
+<button postie trigger="observe" method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+
+<!-- Perform an action when the element has focus and the [key] is pressed -->
+<button postie trigger="keypress" key="r" method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
+```
+
+#### AJAX
+
+```html
 <!-- Fetch HTML and inject it into the element -->
 <button postie method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
 
@@ -82,10 +114,27 @@ interface PostieSettings {
 
 <!-- Fetch HTML and replace the elements outerHTML -->
 <button postie method="GET" accept="text/html" endpoint="/ajax/demo.html" swap="outerHTML">Hotswap Element</button>
+```
 
-<!-- application/json responses (default) inject a "response" object into the error/success callback script -->
-<button postie endpoint="/this/could/fail" onsuccess="console.log(response);" onerror="console.log(response);">AJAX</button>
+#### User Prompts
 
+```html
+<!-- Prompt the user to confirm their action -->
+<button postie prompt="confirm" prompt-label="Are you sure you want to delete your account? This action cannot be undone." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+
+<!-- Prompt the user for an input before processing their action -->
+<button postie prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+
+<!-- Control the prompts body param key: { "password": "" } -->
+<button postie prompt-name="password" prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+
+<!-- Prefill the input prompts value -->
+<button postie prompt-value="prefill prompt value" prompt-name="password" prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
+```
+
+#### Other Features
+
+```html
 <!-- Prevent Postie from applying the [disabled] attribute to the element -->
 <button postie prevent-disable method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
 <button postie no-disable method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
@@ -98,24 +147,6 @@ interface PostieSettings {
 
 <!-- Change the reset timeout -- defaults to 10 (seconds) -->
 <button postie reset="5" endpoint="https://api.example.com/v1/user/resend-verification" data-user-id="1234" data-source="demo">Resend Verification Email</button>
-
-<!-- Prompt the user to confirm their action -->
-<button postie prompt="confirm" prompt-label="Are you sure you want to delete your account? This action cannot be undone." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
-
-<!-- Prompt the user for an input before processing their action -->
-<button postie prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
-
-<!-- Control the prompts body param key: { "password": "" } -->
-<button postie prompt-name="password" prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
-
-<!-- Prefill the input prompts value -->
-<button postie prompt-value="prefill prompt value" prompt-name="password" prompt="input" prompt-label="Enter your password to confirm account deletion." method="DELETE" endpoint="https://api.example.com/v1/admin/user/1234" onsuccess="location.href = '/';" onerror="alert('Failed to delete account.');">Delete Account</button>
-
-<!-- Tell Postie to perform the action when the element enters the viewport (observe only fires once) -->
-<button postie trigger="observe" method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
-
-<!-- Perform an action when the element has focus and the [key] is pressed -->
-<button postie trigger="keypress" key="r" method="GET" accept="text/html" endpoint="/ajax/demo.html">AJAX</button>
 ```
 
 ### Stateful Stylesheets
@@ -141,4 +172,27 @@ button{
         // Postie disabled the element.
     }
 }
+```
+
+### Custom Events
+
+The Custom Event's `e.detail` value will contain the fetch request response. The value will be `null` if the `[accept]` attribute was changed to `text/html`
+
+```typescript
+document.addEventListener("postie:success", (e:CustomEvent) => {
+    console.log(e.detail);
+});
+document.addEventListener("postie:error", (e:CustomEvent) => {
+    console.error(e.detail);
+    if (e.detail?.error){
+        alert(e.detail.error);
+    }
+});
+```
+
+If you manually appended new elements with the `[trigger="observe"]` attribute you can tell Postie to update by dispatching a custom event on the document:
+
+```typescript
+const event = new CustomEvent("postie:update");
+document.dispatchEvent(event);
 ```
