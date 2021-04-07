@@ -107,107 +107,133 @@ class Postie{
             this.validateSettings(settings);
             this.handlePrompt(settings);
             this.applyUid(el);
-            this.processRequest(settings);
+            this.fetch(settings);
         } catch (e) {
             console.error(e);
         }
     }
 
-    private async processRequest(settings:PostieSettings):Promise<void>{
-        let customEvent;
+    private createRequest(settings:PostieSettings):Promise<Response>{
+        return fetch(settings.endpoint, {
+            method: settings.method,
+            credentials: "include",
+            headers: new Headers({
+                Accept: settings.accept,
+                "Content-Type": "application/json",
+            }),
+            body: Object.keys(settings.data).length ? JSON.stringify(settings.data) : null,
+        });
+    }
+
+    private async processResponse(settings:PostieSettings, request:Response):Promise<any>{
+        let response = null;
+        switch (settings.accept){
+            case "application/json":
+                response = await request.json();
+                break;
+            case "text/html":
+                response = await request.text();
+                break;
+            default:
+                throw `Invalid accept type: ${settings.accept}`;
+        }
+        return response;
+    }
+
+    private prepareScript():HTMLScriptElement{
+        let script = document.head.querySelector("script#postie");
+        if (script){
+            script.remove();
+        }
+        script = document.createElement("script");
+        script.id = "postie";
+        return script as HTMLScriptElement;
+    }
+
+    private handleSuccessResponse(settings:PostieSettings, response:any, script:HTMLScriptElement):void{
+        if (settings.success !== null){
+            if (settings.accept === "application/json"){
+                script.innerHTML += `const response = JSON.parse(${JSON.stringify(response)});`;
+            }
+            script.innerHTML += settings.success;
+        }
+        if (settings.accept === "text/html"){
+            let target = settings.el;
+            if (settings.target !== null){
+                target = document.body.querySelector(settings.target);
+                if (!target){
+                    throw `Failed to find element matching selector: ${settings.target}`;
+                }
+            }
+            switch(settings.swap){
+                case "inner":
+                    target.innerHTML = response;
+                    break;
+                case "innerHTML":
+                    target.innerHTML = response;
+                    break;
+                case "outer":
+                    target.outerHTML = response;
+                    break;
+                case "outerHTML":
+                    target.outerHTML = response;
+                    break;
+                default:
+                    throw `Invalid swap type: ${settings.swap}`;
+            }
+            this.observeElements();
+        }
+        settings.el.setAttribute("postie", "success");
+    }
+
+    private handleErrorResponse(settings:PostieSettings, response:any, script:HTMLScriptElement):void{
+        if (settings.error !== null){
+            if (settings.accept === "application/json"){
+                script.innerHTML += `const response = JSON.parse(${JSON.stringify(response)});`;
+            }
+            script.innerHTML += settings.error;
+        }
+        settings.el.setAttribute("postie", "error");
+    }
+
+    private dispatchEvent(type:"success"|"error", data = null):void{
+        const customEvent = new CustomEvent(`postie:${type}`, {
+            detail: data,
+        });
+        document.dispatchEvent(customEvent);
+    }
+
+    private reset(settings:PostieSettings):void{
+        settings.el.removeAttribute("disabled");
+        setTimeout(() => {
+            settings.el.setAttribute("postie", "idling");
+        }, settings.reset * 1000);
+    }
+
+    private async fetch(settings:PostieSettings):Promise<void>{
         try{
             settings.el.setAttribute("postie", "processing");
             if (!settings.preventDisable){
                 settings.el.setAttribute("disabled", "true");
             }
-            const request = await fetch(settings.endpoint, {
-                method: settings.method,
-                credentials: "include",
-                headers: new Headers({
-                    Accept: settings.accept,
-                    "Content-Type": "application/json",
-                }),
-                body: JSON.stringify(settings.data),
-            });
-            let response = null;
-            switch (settings.accept){
-                case "application/json":
-                    response = await request.json();
-                    break;
-                case "text/html":
-                    response = await request.text();
-                    break;
-                default:
-                    throw `Invalid accept type: ${settings.accept}`;
-            }
-            let script = document.head.querySelector("script#postie");
-            if (script){
-                script.remove();
-            }
-            script = document.createElement("script");
-            script.id = "postie";
+            const request = await this.createRequest(settings);
+            const response = await this.processResponse(settings, request);
+            const script = this.prepareScript();
             if (request.ok){
-                if (settings.success !== null){
-                    if (settings.accept === "application/json"){
-                        script.innerHTML += `const response = JSON.parse(${JSON.stringify(response)});`;
-                    }
-                    script.innerHTML += settings.success;
-                }
-                if (settings.accept === "text/html"){
-                    let target = settings.el;
-                    if (settings.target !== null){
-                        target = document.body.querySelector(settings.target);
-                        if (!target){
-                            throw `Failed to find element matching selector: ${settings.target}`;
-                        }
-                    }
-                    switch(settings.swap){
-                        case "inner":
-                            target.innerHTML = response;
-                            break;
-                        case "innerHTML":
-                            target.innerHTML = response;
-                            break;
-                        case "outer":
-                            target.outerHTML = response;
-                            break;
-                        case "outerHTML":
-                            target.outerHTML = response;
-                            break;
-                        default:
-                            throw `Invalid swap type: ${settings.swap}`;
-                    }
-                    this.observeElements();
-                }
-                settings.el.setAttribute("postie", "success");
+                this.handleSuccessResponse(settings, response, script);
             } else {
-                console.error(`${request.status}: ${request.statusText}`);
-                if (settings.error !== null){
-                    if (settings.accept === "application/json"){
-                        script.innerHTML += `const response = JSON.parse(${JSON.stringify(response)});`;
-                    }
-                    script.innerHTML += settings.error;
-                }
-                settings.el.setAttribute("postie", "error");
+                this.handleErrorResponse(settings, response, script);
             }
             if (script.innerHTML.length){
                 document.head.appendChild(script);
             }
-            customEvent = new CustomEvent(`postie:${request.ok ? "success" : "error"}`, {
-                detail: settings.accept === "application/json" ? response : null,
-            });
+            this.dispatchEvent(request.ok ? "success" : "error", settings.accept === "application/json" ? response : null);
         } catch (e) {
             console.error(e);
             settings.el.setAttribute("postie", "error");
-            customEvent = new CustomEvent(`postie:error`, {
-                detail: null,
-            });
+            this.dispatchEvent("error");
         }
-        document.dispatchEvent(customEvent);
-        settings.el.removeAttribute("disabled");
-        setTimeout(() => {
-            settings.el.setAttribute("postie", "idling");
-        }, settings.reset * 1000);
+        this.reset(settings);
     }
 
     private observeElements():void{
