@@ -1,6 +1,6 @@
 {
   "name": "@codewithkyle/postie",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Perform CRUD operations using HTML Attributes.",
   "main": "postie.min.js",
 	"types": "postie.d.ts",

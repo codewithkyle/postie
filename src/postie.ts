@@ -96,7 +96,7 @@ class Postie{
     private processElement(el:HTMLElement):void{
         try {
             const settings:PostieSettings = {
-                method: <RequestMethod>el.getAttribute("request")?.toUpperCase() ?? "POST",
+                method: <RequestMethod>el.getAttribute("request")?.toUpperCase() || <RequestMethod>el.getAttribute("method")?.toUpperCase() || "POST",
                 accept: <AcceptHeader>el.getAttribute("accept")?.toLowerCase() ?? "application/json",
                 data: el.dataset,
                 endpoint: el.getAttribute("endpoint"),
