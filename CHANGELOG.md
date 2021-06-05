@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2021-06-05
+
 ### ⚠️ Breaking Changes Possible ⚠️
 
 This update includes a new `[credentials]` attribute that handles the requests `credentials` value. The default has been changed from "include" to "same-origin". This change was implemented as part of an ongoing process designed to updated Postie to follow the Fetch API spec. To fix any Postie requests that break because of this update simply add `credentails="include"` to the element.
@@ -48,6 +50,7 @@ This update includes a new `[credentials]` attribute that handles the requests `
     - Error
     - Update Intersection Observer
 
-[unreleased]: https://github.com/codewithkyle/postie/compare/v1.0.1...HEAD
+[unreleased]: https://github.com/codewithkyle/postie/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/codewithkyle/postie/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/codewithkyle/postie/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/codewithkyle/postie/releases/tag/v1.0.0
