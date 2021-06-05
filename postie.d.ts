@@ -6,6 +6,12 @@ export type Prompt = "confirm" | "input" | null;
 
 export type Swap = "inner" | "outer" | "innerHTML" | "outerHTML";
 
+export type Headers = {
+    [key:string]: string;
+};
+
+export type Credentials = "include" | "omit" | "same-origin";
+
 export type PostieSettings = {
     method: RequestMethod;
     accept: AcceptHeader;
@@ -23,4 +29,6 @@ export type PostieSettings = {
     swap: Swap;
     el: HTMLElement;
     reset: number;
+    headers: Headers;
+    credentials: Credentials;
 };

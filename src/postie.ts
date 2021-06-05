@@ -1,4 +1,4 @@
-import type { PostieSettings, RequestMethod, Prompt, AcceptHeader, Swap } from "../postie";
+import type { PostieSettings, RequestMethod, Prompt, AcceptHeader, Swap, Headers, Credentials } from "../postie";
 
 class Postie{
     private io: IntersectionObserver;
@@ -93,6 +93,18 @@ class Postie{
         }
     }
 
+    private parseHeaders(raw:string):Headers{
+        const output = {};
+        const headers = raw.replace(/\;$/, "").trim().split(";");
+        for (let i = 0; i < headers.length; i++){
+            const values = headers[i].split(":");
+            if (values.length === 2){
+                output[values[0].trim()] = values[1].trim();
+            }
+        }
+        return output;
+    }
+
     private processElement(el:HTMLElement):void{
         try {
             const settings:PostieSettings = {
@@ -112,6 +124,8 @@ class Postie{
                 swap: <Swap>el.getAttribute("swap") || "innerHTML",
                 el: el,
                 reset: (el.getAttribute("reset") !== null) ? parseInt(el.getAttribute("reset")) : 10,
+                headers: el.getAttribute("headers") !== null ? this.parseHeaders(el.getAttribute("headers")) : {},
+                credentials: <Credentials>el.getAttribute("credentials") ?? "same-origin",
             };
             this.validateSettings(settings);
             this.handlePrompt(settings);
@@ -123,13 +137,14 @@ class Postie{
     }
 
     private createRequest(settings:PostieSettings):Promise<Response>{
+        const headers = Object.assign({
+            Accept: settings.accept,
+            "Content-Type": "application/json",
+        }, settings.headers);
         return fetch(settings.endpoint, {
             method: settings.method,
-            credentials: "include",
-            headers: new Headers({
-                Accept: settings.accept,
-                "Content-Type": "application/json",
-            }),
+            credentials: settings.credentials,
+            headers: new Headers(headers),
             body: Object.keys(settings.data).length ? JSON.stringify(settings.data) : null,
         });
     }
@@ -255,8 +270,8 @@ class Postie{
     }
 
     private main(){
-        document.addEventListener("click", this.handleClick, { passive: true, capture: true });
-        document.addEventListener("keypress", this.handleKeypress, { passive: true, capture: true });
+        document.addEventListener("click", this.handleClick, { capture: true });
+        document.addEventListener("keypress", this.handleKeypress, { capture: true });
         document.addEventListener("postie:update", () => {
             this.observeElements();
         });

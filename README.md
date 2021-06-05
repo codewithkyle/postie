@@ -29,6 +29,10 @@ type Prompt = "confirm" | "input" | null;
 
 type Swap = "inner" | "outer" | "innerHTML" | "outerHTML";
 
+type Headers = {
+    [key:string]: string;
+};
+
 interface PostieSettings {
     endpoint: string;
     method?: RequestMethod; // POST
@@ -45,6 +49,7 @@ interface PostieSettings {
     target?: string; // this.el
     swap?: Swap; // innerHTML
     reset?: number; // 10
+    headers?: Headers; // {}
 };
 ```
 
@@ -147,6 +152,12 @@ interface PostieSettings {
 
 <!-- Change the reset timeout -- defaults to 10 (seconds) -->
 <button postie reset="5" endpoint="https://api.example.com/v1/user/resend-verification" data-user-id="1234" data-source="demo">Resend Verification Email</button>
+
+<!-- Tell Postie what headers you need added to the request -->
+<button postie method="GET" accept="text/html" endpoint="/ajax/demo.html" headers="X-Requested-With: XMLHttpRequest; Authorization: bearer token;">AJAX</button>
+
+<!-- Tell Postie what credentials should be sent with the request -- defaults to "same-origin" -->
+<button postie method="GET" accept="text/html" endpoint="/ajax/demo.html" credentials="omit">AJAX</button>
 ```
 
 ### Stateful Stylesheets

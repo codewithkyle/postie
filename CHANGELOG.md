@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### ⚠️ Breaking Changes Possible ⚠️
+
+This update includes a new `[credentials]` attribute that handles the requests `credentials` value. The default has been changed from "include" to "same-origin". This change was implemented as part of an ongoing process designed to updated Postie to follow the Fetch API spec. To fix any Postie requests that break because of this update simply add `credentails="include"` to the element.
+
+### Added
+
+- `[credentials]` attribute accepts: include, omit, or same-origin
+- `[headers]` attribute ([#1](https://github.com/codewithkyle/postie/issues/1))
+    - split key-value pairs using the `:` character
+    - add several headers using the `;` character
+
+### Fixed
+
+- credentials defaulted to `include` when the spec defaults to `same-origin`
+
 ## [1.0.1] - 2021-04-09
 
 ### Fixed

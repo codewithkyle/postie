@@ -1,21 +1,21 @@
 {
-  "name": "@codewithkyle/postie",
-  "version": "1.0.1",
-  "description": "Perform CRUD operations using HTML Attributes.",
-  "main": "postie.min.js",
-	"types": "postie.d.ts",
-	"files": [
-		"postie.min.js",
-		"postie.d.ts"
-	],
-	"scripts": {
-		"build": "esbuild ./src/postie.ts --outfile=postie.min.js --format=iife --bundle --minify",
-		"test": "npm run build && cp ./postie.min.js ./test/postie.min.js && serve ./test"
-	},
-  "author": "Kyle Andrews <codingwithkyle@gmail.com>",
-  "license": "MIT",
-  "devDependencies": {
-    "esbuild": "^0.11.5",
-    "serve": "^11.3.2"
-  }
+ "name": "@codewithkyle/postie",
+ "version": "1.1.0",
+ "description": "Perform CRUD operations using HTML Attributes.",
+ "main": "postie.min.js",
+ "types": "postie.d.ts",
+ "files": [
+  "postie.min.js",
+  "postie.d.ts"
+ ],
+ "scripts": {
+  "build": "esbuild ./src/postie.ts --outfile=postie.min.js --format=iife --bundle --minify",
+  "test": "npm run build && cp ./postie.min.js ./test/postie.min.js && serve ./test"
+ },
+ "author": "Kyle Andrews <codingwithkyle@gmail.com>",
+ "license": "MIT",
+ "devDependencies": {
+  "esbuild": "^0.12.6",
+  "serve": "^11.3.2"
+ }
 }
